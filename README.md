@@ -1,6 +1,6 @@
-# Warning
+# Warning: Anyone except Eli will probably find this project useless
 
-This project is pretty hacky, and specific to the Polish Programmers Dvorak keyboard layout.
+This project is a fork of Space2Ctrl, and is pretty hacky, and specific to the Polish Programmers Dvorak keyboard layout.
 I may come back some day and document this properly and clean up the code... but that day is yet to come.
 
 #Space2Ctrl Readme

@@ -47,7 +47,7 @@ typedef union {
 #define MINUS_KEYCODE 48
 #define CAPS_KEYCODE 66
 // Milliseconds before considering a keypress
-#define PRESS_THRESHOLD 300
+#define PRESS_THRESHOLD 200
 
 class Space2Ctrl {
 
