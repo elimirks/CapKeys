@@ -13,14 +13,15 @@ start() {
 	# For remapping the "-" key to ctrl
 	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?48")
 	newmap=$(echo ${origmap} | perl -pe "s/ minus/ Control_L/g")
+	newmap=$(echo ${newmap} | perl -pe "s/ underscore/ NoSymbol/g")
 	xmodmap -e "$newmap"
-	xmodmap -e "keycode 255 = minus VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
+	xmodmap -e "keycode 255 = minus underscore minus underscore hyphen endash hyphen endash"
 
 	# For remapping the caps lock key to ctrl
 	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?66")
 	newmap=$(echo ${origmap} | perl -pe "s/ Escape/ Control_L/g")
 	xmodmap -e "$newmap"
-	xmodmap -e "keycode 254 = Escape VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
+	xmodmap -e "keycode 254 = Escape NoSymbol Escape"
 
 	nohup "${0%/*}/s2c" >> "$logfile" 2>&1 &
 	sleep 1 # Don't ask me why but we need to wait more than one second else the ctrl modifier is

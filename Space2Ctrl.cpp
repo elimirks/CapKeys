@@ -47,7 +47,7 @@ typedef union {
 #define MINUS_KEYCODE 48
 #define CAPS_KEYCODE 66
 // Milliseconds before considering a keypress
-#define PRESS_THRESHOLD 200
+#define PRESS_THRESHOLD 500
 
 class Space2Ctrl {
 
@@ -113,7 +113,6 @@ class Space2Ctrl {
     static bool minus_down = false;
     static bool caps_down = false;
     static bool key_combo = false;
-    static bool modifier_down = false;
     static struct timeval startWait, endWait;
 
     unsigned char t = data->event.u.u.type;
@@ -139,14 +138,6 @@ class Space2Ctrl {
             XTestFakeKeyEvent(userData->ctrlDisplay, 254, True, CurrentTime);
             XTestFakeKeyEvent(userData->ctrlDisplay, 254, False, CurrentTime);
 					}
-        } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Shift_L))
-                    || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Shift_R))
-                    || (c == 108)
-                    ) {
-          // cout << "    Modifier" << endl;
-          // TODO: Find a better way to get those modifiers!!!
-          modifier_down = true;
-
         } else { // another key pressed
           // cout << "    Another" << endl;
           if (minus_down || caps_down) {
@@ -165,7 +156,7 @@ class Space2Ctrl {
         if (c == MINUS_KEYCODE) {
           minus_down = false;
 
-          if (!key_combo && !modifier_down) {
+          if ( ! key_combo) {
             gettimeofday(&endWait, NULL);
             if ( diff_ms(endWait, startWait) < PRESS_THRESHOLD) {
               // if minimum timeout elapsed since minus was pressed
@@ -177,7 +168,7 @@ class Space2Ctrl {
         } else if (c == CAPS_KEYCODE) {
           caps_down = false;
 
-          if ( ! key_combo && ! modifier_down) {
+          if ( ! key_combo) {
             gettimeofday(&endWait, NULL);
 
             if (diff_ms(endWait, startWait) < PRESS_THRESHOLD) {
@@ -193,23 +184,6 @@ class Space2Ctrl {
           // ctrl release
           if (minus_down || caps_down)
             key_combo = true;
-        } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Shift_L))
-                    || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Shift_R))
-                    || (c == 108)
-                    ) {
-          // cout << "    Modifier" << endl;
-          // TODO: Find a better way to get those modifiers!!!
-          modifier_down = false;
-        }
-
-        break;
-      }
-    case ButtonPress:
-      {
-        if (minus_down || caps_down) {
-          key_combo = true;
-        } else {
-          key_combo = false;
         }
 
         break;
