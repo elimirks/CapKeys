@@ -44,6 +44,11 @@ typedef union {
   xConnSetupPrefix setup;
 } XRecordDatum;
 
+#define MINUS_KEYCODE 48
+#define CAPS_KEYCODE 66
+// Milliseconds before considering a keypress
+#define PRESS_THRESHOLD 300
+
 class Space2Ctrl {
 
   string m_displayName;
@@ -53,9 +58,9 @@ class Space2Ctrl {
   XRecordClientSpec recClientSpec;
   XRecordContext recContext;
 
-  void setupXTestExtension(){
+  void setupXTestExtension() {
     int ev, er, ma, mi;
-    if (!XTestQueryExtension(userData.ctrlDisplay, &ev, &er, &ma, &mi)) {
+    if ( ! XTestQueryExtension(userData.ctrlDisplay, &ev, &er, &ma, &mi)) {
       cout << "%sThere is no XTest extension loaded to X server.\n" << endl;
       throw exception();
     }
@@ -65,7 +70,7 @@ class Space2Ctrl {
     XSynchronize(userData.ctrlDisplay, True);
 
     // Record extension exists?
-    if (!XRecordQueryVersion(userData.ctrlDisplay, &recVer.first, &recVer.second)) {
+    if ( ! XRecordQueryVersion(userData.ctrlDisplay, &recVer.first, &recVer.second)) {
       cout << "%sThere is no RECORD extension loaded to X server.\n"
         "You must add following line:\n"
         "   Load  \"record\"\n"
@@ -105,7 +110,8 @@ class Space2Ctrl {
 
     CallbackClosure *userData = (CallbackClosure *) priv;
     XRecordDatum *data = (XRecordDatum *) hook->data;
-    static bool space_down = false;
+    static bool minus_down = false;
+    static bool caps_down = false;
     static bool key_combo = false;
     static bool modifier_down = false;
     static struct timeval startWait, endWait;
@@ -113,40 +119,26 @@ class Space2Ctrl {
     unsigned char t = data->event.u.u.type;
     int c = data->event.u.u.detail;
 
-    // cout << "\nState:" << endl;
-    // if (space_down)
-    //   cout << "space_down = true" << endl;
-    // else
-    //   cout << "space_down = false" << endl;
-
-    // if (key_combo)
-    //   cout << "key_combo = true" << endl;
-    // else
-    //   cout << "key_combo = false" << endl;
-
-    // // if (modifier_down)
-    // //   cout << "modifier_down = true" << endl;
-    // // else
-    // //   cout << "modifier_down = false" << endl;
-    // cout << endl;
-
+		cout << c << endl;
     switch (t) {
     case KeyPress:
       {
         // cout << "KeyPress";
-        if (c == 65) {
-          space_down = true; // space pressed
+        if (c == MINUS_KEYCODE) {
+          minus_down = true;
           gettimeofday(&startWait, NULL);
-          // cout << "    65" << endl;
-
+				} else if (c == CAPS_KEYCODE) {
+          caps_down = true;
+          gettimeofday(&startWait, NULL);
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
                     || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
-          // cout << "    Control_{L||R}" << endl;
-          // ctrl pressed
-          if (space_down) { // space ctrl sequence
+          if (minus_down) {
             XTestFakeKeyEvent(userData->ctrlDisplay, 255, True, CurrentTime);
             XTestFakeKeyEvent(userData->ctrlDisplay, 255, False, CurrentTime);
-          }
+          } else if (caps_down) {
+            XTestFakeKeyEvent(userData->ctrlDisplay, 254, True, CurrentTime);
+            XTestFakeKeyEvent(userData->ctrlDisplay, 254, False, CurrentTime);
+					}
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Shift_L))
                     || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Shift_R))
                     || (c == 108)
@@ -157,7 +149,7 @@ class Space2Ctrl {
 
         } else { // another key pressed
           // cout << "    Another" << endl;
-          if (space_down) {
+          if (minus_down || caps_down) {
             key_combo = true;
           } else {
             key_combo = false;
@@ -170,26 +162,36 @@ class Space2Ctrl {
     case KeyRelease:
       {
         // cout << "KeyRelease";
-        if (c == 65) {
-          // cout << "    65";
-          space_down = false; // space released
+        if (c == MINUS_KEYCODE) {
+          minus_down = false;
 
           if (!key_combo && !modifier_down) {
-            // cout << "    (!key_combo && !modifier_down)";
             gettimeofday(&endWait, NULL);
-            if ( diff_ms(endWait, startWait) < 600 ) {
-              // if minimum timeout elapsed since space was pressed
+            if ( diff_ms(endWait, startWait) < PRESS_THRESHOLD) {
+              // if minimum timeout elapsed since minus was pressed
               XTestFakeKeyEvent(userData->ctrlDisplay, 255, True, CurrentTime);
               XTestFakeKeyEvent(userData->ctrlDisplay, 255, False, CurrentTime);
             }
           }
           key_combo = false;
-          // cout << endl;
+        } else if (c == CAPS_KEYCODE) {
+          caps_down = false;
+
+          if ( ! key_combo && ! modifier_down) {
+            gettimeofday(&endWait, NULL);
+
+            if (diff_ms(endWait, startWait) < PRESS_THRESHOLD) {
+              // if minimum timeout elapsed since caps was pressed
+              XTestFakeKeyEvent(userData->ctrlDisplay, 254, True, CurrentTime);
+              XTestFakeKeyEvent(userData->ctrlDisplay, 254, False, CurrentTime);
+            }
+          }
+          key_combo = false;
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
                     || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
           // cout << "    Control_{L||R}" << endl;
           // ctrl release
-          if (space_down)
+          if (minus_down || caps_down)
             key_combo = true;
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Shift_L))
                     || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Shift_R))
@@ -204,8 +206,7 @@ class Space2Ctrl {
       }
     case ButtonPress:
       {
-
-        if (space_down) {
+        if (minus_down || caps_down) {
           key_combo = true;
         } else {
           key_combo = false;
@@ -245,14 +246,11 @@ public:
   }
 
   void start() {
-    // // Remap keycode 255 to Keysym space:
-    // KeySym spc = XK_space;
-    // XChangeKeyboardMapping(userData.ctrlDisplay, 255, 1, &spc, 1);
-    // XFlush(userData.ctrlDisplay);
-
-    // TODO: document why the following event is needed
+    // TODO: document why the following events are needed
     XTestFakeKeyEvent(userData.ctrlDisplay, 255, True, CurrentTime);
     XTestFakeKeyEvent(userData.ctrlDisplay, 255, False, CurrentTime);
+    XTestFakeKeyEvent(userData.ctrlDisplay, 254, True, CurrentTime);
+    XTestFakeKeyEvent(userData.ctrlDisplay, 254, False, CurrentTime);
 
     if (!XRecordEnableContext(userData.dataDisplay, recContext, eventCallback,
                               (XPointer) &userData)) {

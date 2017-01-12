@@ -18,8 +18,8 @@ s2c: $(SRC) Makefile
 	$(CC) -o $@ $(SRC) $(CFLAGS) $(LIBS)
 
 clean:
-	@echo "removing Space2Ctrl"
-	rm -f Space2Ctrl
+	@echo "removing s2c"
+	rm -f s2c
 
 install: all
 	@echo "installing to $(DESTDIR)$(BINPREFIX)"

@@ -1,4 +1,9 @@
-# Space 2 Control
+# Warning
+
+This project is pretty hacky, and specific to the Polish Programmers Dvorak keyboard layout.
+I may come back some day and document this properly and clean up the code... but that day is yet to come.
+
+#Space2Ctrl Readme
 
 This little hack for X turns the spacebar key into another control key when used in combination.
 When used alone, it behaves like the ordinary space bar on the key release event.

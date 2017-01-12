@@ -1,29 +1,38 @@
 #! /bin/sh
+
+# WARNING: This will only work on Programmers Dvorak (Polish Alternative)
+
 logfile="$HOME/.Space2Ctrl.log"
 
 start() {
-	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?65")
-	#newmap=$(echo ${origmap} | perl -pe "s/65[[:blank:]]*?=[[:blank:]]*?space/65  = Control_L/")
-	newmap=$(echo ${origmap} | perl -pe "s/ space/ Control_L/g")
+	# Make Caps_Lock to Escape
+	xmodmap -e "remove Lock = Caps_Lock"
+	xmodmap -e "keysym Caps_Lock = Escape"
+	xmodmap -e "add Lock = Caps_Lock"
 
+	# For remapping the "-" key to ctrl
+	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?48")
+	newmap=$(echo ${origmap} | perl -pe "s/ minus/ Control_L/g")
 	xmodmap -e "$newmap"
-	xmodmap -e "keycode 255 = space VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
+	xmodmap -e "keycode 255 = minus VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
+
+	# For remapping the caps lock key to ctrl
+	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?66")
+	newmap=$(echo ${origmap} | perl -pe "s/ Escape/ Control_L/g")
+	xmodmap -e "$newmap"
+	xmodmap -e "keycode 254 = Escape VoidSymbol VoidSymbol VoidSymbol VoidSymbol"
+
 	nohup "${0%/*}/s2c" >> "$logfile" 2>&1 &
 	sleep 1 # Don't ask me why but we need to wait more than one second else the ctrl modifier is
-		# reinitialized to XK_Control_L XK_Control_R as soon as keycode 65 is pressed!
+		# reinitialized to XK_Control_L XK_Control_R as soon as keycode 48 is pressed!
 	`xmodmap -e "add control = Control_L Control_R"`
+
 	echo "Space2Ctrl is now active (logfile: $logfile)"
 	exit 0
 }
 
 stop() {
-	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?65")
-	newmap=$(echo ${origmap} | perl -pe "s/ Control_L/ space/g")
-	xmodmap -e "$newmap"
-	xmodmap -e "keycode 255 ="
-	xmodmap -e "clear control"
-	xmodmap -e "add control = Control_L"
-	xmodmap -e "add control = Control_R"
+	setxkbmap pl dvp # Reset xmodmap settings.. kind of a hack :3
 	kill -s TERM `pgrep s2c` 2>&1
 }
 
