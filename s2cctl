@@ -5,7 +5,10 @@
 logfile="$HOME/.Space2Ctrl.log"
 
 start() {
-	# Make Caps_Lock to Escape
+	# Just to force myself to not use the normal control key :)
+	xmodmap -e "keycode 37 = NoSymbol NoSymbol NoSymbol"
+
+	# Map Caps_Lock to Escape
 	xmodmap -e "remove Lock = Caps_Lock"
 	xmodmap -e "keysym Caps_Lock = Escape"
 	xmodmap -e "add Lock = Caps_Lock"
@@ -34,7 +37,17 @@ start() {
 
 stop() {
 	setxkbmap pl dvp # Reset xmodmap settings.. kind of a hack :3
-	kill -s TERM `pgrep s2c` 2>&1
+
+	if pgrep -x s2c
+	then
+		kill -s TERM `pgrep -x s2c` 2>&1
+	fi
+}
+
+restart() {
+	stop
+	sleep 1 # sanity
+	start
 }
 
 case $1 in
@@ -44,6 +57,9 @@ case $1 in
 	stop)
 		echo "Stopping Space2Ctrl..."
 		stop;;
+	restart)
+		echo "Restarting Space2Ctrl..."
+		restart;;
 	*)
 		echo "Please pass start or stop";;
 esac
