@@ -44,7 +44,7 @@ typedef union {
   xConnSetupPrefix setup;
 } XRecordDatum;
 
-#define MINUS_KEYCODE 48
+#define QUOTE_KEYCODE 48
 #define CAPS_KEYCODE 66
 // Milliseconds before considering a keypress
 #define PRESS_THRESHOLD 300
@@ -110,7 +110,7 @@ class Space2Ctrl {
 
     CallbackClosure *userData = (CallbackClosure *) priv;
     XRecordDatum *data = (XRecordDatum *) hook->data;
-    static bool minus_down = false;
+    static bool quote_down = false;
     static bool caps_down = false;
     static bool key_combo = false;
     static struct timeval startWait, endWait;
@@ -118,20 +118,20 @@ class Space2Ctrl {
     unsigned char t = data->event.u.u.type;
     int c = data->event.u.u.detail;
 
-		cout << c << endl;
+    cout << c << endl;
     switch (t) {
     case KeyPress:
       {
         // cout << "KeyPress";
-        if (c == MINUS_KEYCODE) {
-          minus_down = true;
+        if (c == QUOTE_KEYCODE) {
+          quote_down = true;
           gettimeofday(&startWait, NULL);
-				} else if (c == CAPS_KEYCODE) {
+	} else if (c == CAPS_KEYCODE) {
           caps_down = true;
           gettimeofday(&startWait, NULL);
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
-                    || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
-          if (minus_down) {
+                 || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
+          if (quote_down) {
             XTestFakeKeyEvent(userData->ctrlDisplay, 255, True, CurrentTime);
             XTestFakeKeyEvent(userData->ctrlDisplay, 255, False, CurrentTime);
           } else if (caps_down) {
@@ -139,8 +139,7 @@ class Space2Ctrl {
             XTestFakeKeyEvent(userData->ctrlDisplay, 254, False, CurrentTime);
 					}
         } else { // another key pressed
-          // cout << "    Another" << endl;
-          if (minus_down || caps_down) {
+          if (quote_down || caps_down) {
             key_combo = true;
           } else {
             key_combo = false;
@@ -152,10 +151,8 @@ class Space2Ctrl {
       }
     case KeyRelease:
       {
-        // cout << "KeyRelease";
-        if (c == MINUS_KEYCODE) {
-          minus_down = false;
-
+        if (c == QUOTE_KEYCODE) {
+          quote_down = false;
           if ( ! key_combo) {
             gettimeofday(&endWait, NULL);
             if ( diff_ms(endWait, startWait) < PRESS_THRESHOLD) {
@@ -179,10 +176,8 @@ class Space2Ctrl {
           }
           key_combo = false;
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
-                    || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
-          // cout << "    Control_{L||R}" << endl;
-          // ctrl release
-          if (minus_down || caps_down)
+                 || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
+          if (quote_down || caps_down)
             key_combo = true;
         }
 

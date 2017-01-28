@@ -1,13 +1,6 @@
-# Warning: Anyone except Eli will probably find this project useless
+#Pinky Controls Readme
 
-This project is a fork of Space2Ctrl, and is pretty hacky, and specific to the Polish Programmers Dvorak keyboard layout.
-I may come back some day and document this properly and clean up the code... but that day is yet to come.
-
-#Space2Ctrl Readme
-
-This little hack for X turns the spacebar key into another control key when used in combination.
-When used alone, it behaves like the ordinary space bar on the key release event.
-Especially useful with Emacs.
+This short program will modify the keybindings of Caps Lock and ' to become control. Also rebinds Caps Lock to become escape when not being held. Current settings will only work with qwerty keyboard layouts as key rebindings are hard coded. Changing the 1 liner perl scripts can modify this
 
 ## Prerequisites:
 * Install X11 and XTEST development packages. On Debian GNU/Linux derivatives:
@@ -30,9 +23,10 @@ e.g.:
 make
 sudo make install
 ```
+After installing, the program and script need to be run at login. This can be done in the .xinitrc file
 ### Arch linux
 
-Space2Ctrl is currently available via the Arch User Repository (AUR) as 'space2ctrl-git'.
+The original program, Space2Ctrl is currently available via the Arch User Repository (AUR) as 'space2ctrl-git'.
 
 ## Usage:
 * Load Space2Ctrl with "s2cctl start"
