@@ -1,24 +1,19 @@
 #! /bin/sh
 
-# WARNING: This will only work on Programmers Dvorak (Polish Alternative)
-
 logfile="$HOME/.Space2Ctrl.log"
 
 start() {
-	# Just to force myself to not use the normal control key :)
-	xmodmap -e "keycode 37 = NoSymbol NoSymbol NoSymbol"
-
 	# Map Caps_Lock to Escape
 	xmodmap -e "remove Lock = Caps_Lock"
 	xmodmap -e "keysym Caps_Lock = Escape"
 	xmodmap -e "add Lock = Caps_Lock"
 
-	# For remapping the "-" key to ctrl
+	# For remapping the "'" key to ctrl
 	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?48")
-	newmap=$(echo ${origmap} | perl -pe "s/ minus/ Control_L/g")
-	newmap=$(echo ${newmap} | perl -pe "s/ underscore/ NoSymbol/g")
+	newmap=$(echo ${origmap} | perl -pe "s/ apostrophe/ Control_L/g")
+	newmap=$(echo ${newmap} | perl -pe "s/ quotedbl/ NoSymbol/g")
 	xmodmap -e "$newmap"
-	xmodmap -e "keycode 255 = minus underscore minus underscore hyphen endash hyphen endash"
+	xmodmap -e "keycode 255 = apostrophe quotedbl apostrophe quotedbl"
 
 	# For remapping the caps lock key to ctrl
 	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?66")
@@ -36,7 +31,7 @@ start() {
 }
 
 stop() {
-	setxkbmap pl dvp # Reset xmodmap settings.. kind of a hack :3
+	setxkbmap us # Reset xmodmap settings.. kind of a hack :3
 
 	if pgrep -x s2c
 	then
