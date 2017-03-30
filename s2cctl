@@ -5,8 +5,8 @@
 logfile="$HOME/.Space2Ctrl.log"
 
 start() {
-	# Just to force myself to not use the normal control key :)
-	xmodmap -e "keycode 37 = NoSymbol NoSymbol NoSymbol"
+	# Misc other remappings
+	xmodmap "${0%/*}/Xmodmap"
 
 	# Map Caps_Lock to Escape
 	xmodmap -e "remove Lock = Caps_Lock"
@@ -14,10 +14,7 @@ start() {
 	xmodmap -e "add Lock = Caps_Lock"
 
 	# For remapping the "-" key to ctrl
-	origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?48")
-	newmap=$(echo ${origmap} | perl -pe "s/ minus/ Control_L/g")
-	newmap=$(echo ${newmap} | perl -pe "s/ underscore/ NoSymbol/g")
-	xmodmap -e "$newmap"
+	xmodmap -e "keycode 48 = Control_L NoSymbol Control_L NoSymbol NoSymbol NoSymbol NoSymbol NoSymbol"
 	xmodmap -e "keycode 255 = minus underscore minus underscore hyphen endash hyphen endash"
 
 	# For remapping the caps lock key to ctrl
