@@ -2,7 +2,7 @@
 
 # WARNING: This will only work on Programmers Dvorak (Polish Alternative)
 
-logfile="$HOME/.Space2Ctrl.log"
+logfile="/dev/null"
 
 start() {
 	# Misc other remappings
